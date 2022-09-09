@@ -1,0 +1,134 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Enum_RoleType {
+  ADMIN
+  CLIENT
+}
+
+enum Enum_RestaurantType {
+  JUNKFOOD
+  VEGETARIANFOOD
+  MEATFOOD
+  DESSERTFOOD
+  JAPANESEFOOD
+  PERUVIANFOOD
+  COLOMBIANFOOD
+  MEXICANFOOD
+  ITALIANFOOD
+  CHINAFOOD
+}
+
+enum Enum_DayType {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+}
+
+model Role {
+  id    String        @id @default(cuid())
+  type  Enum_RoleType
+  users User[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model User {
+  id           String        @id @default(cuid())
+  name         String
+  email        String        @unique
+  password     String
+  phoneNumber  String?
+  restaurants  Restaurant[]
+  reservations Reservation[]
+
+  role   Role   @relation(fields: [roleId], references: [id])
+  roleId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Restaurant {
+  id           String              @id @default(cuid())
+  name         String
+  phoneNumber  String
+  type         Enum_RestaurantType
+  headquarters Headquarter[]
+
+  user   User   @relation(fields: [userId], references: [id])
+  userId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Schedule {
+  id        String       @id @default(cuid())
+  day       Enum_DayType
+  startTime DateTime
+  endTime   DateTime
+
+  headquarter   Headquarter @relation(fields: [headquarterId], references: [id])
+  headquarterId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Headquarter {
+  id          String     @id @default(cuid())
+  name        String
+  phoneNumber String?
+  address     String
+  shedules    Schedule[]
+  tables      Table[]
+
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
+  restaurantId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Table {
+  id           String        @id @default(cuid())
+  number       String        @unique
+  capacity     Int
+  reservations Reservation[]
+
+  headquarter   Headquarter @relation(fields: [headquarterId], references: [id])
+  headquarterId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Reservation {
+  id             String   @id @default(cuid())
+  date           DateTime
+  occasion       String?
+  numberOfPeople Int
+
+  reservationTable Table  @relation(fields: [tableId], references: [id])
+  tableId          String
+  user             User   @relation(fields: [userId], references: [id])
+  userId           String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
